@@ -5,6 +5,7 @@ Proyecto creado para la asignatura Lenguajes de Programación en WWW de la Unive
 ## Equipo
 
 Tomás Escalona - 201573031-8
+
 Benjamín Molina - 201573005-9
 
 ## Instrucciones de ejecución
