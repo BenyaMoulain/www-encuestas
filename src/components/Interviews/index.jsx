@@ -10,27 +10,11 @@ import {
   TableRow,
   TextField,
 } from "@material-ui/core";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { CreateButton } from "./CreateButton";
 import { Interview } from "./Interview";
-
-const getInterviews = () => [
-  {
-    id: 0,
-    title: "encuesta1",
-    description: "encuesta de prueba",
-  },
-  {
-    id: 1,
-    title: "encuesta2",
-    description: "encuesta de prueba dos",
-  },
-  {
-    id: 2,
-    title: "encuesta 3",
-    description: "encuesta de prueba tres",
-  },
-];
+import { v4 } from "uuid";
 
 const useStyles = makeStyles((theme) => ({
   modal: {
@@ -60,22 +44,73 @@ const useStyles = makeStyles((theme) => ({
 
 const initialInterviewDataState = {
   title: "",
-  description: "",
+  desc: "",
 };
 
 const Interviews = (props) => {
   const classes = useStyles();
+  const crudapi =
+    "https://uiyie2esuf.execute-api.us-east-2.amazonaws.com/interviews";
 
   const [interviews, setInterviews] = useState([]);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [interviewData, setInterviewData] = useState(initialInterviewDataState);
 
+  const getAllInterviews = () => {
+    axios
+      .get(crudapi)
+      .then((response) => {
+        setInterviews(response.data.Items);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const updateInterview = () => {
+    if (
+      interviewData.desc === initialInterviewDataState.desc ||
+      interviewData.title === initialInterviewDataState.title
+    )
+      return;
+    axios
+      .put(crudapi, interviewData)
+      .then((response) => {
+        console.log(response);
+        getAllInterviews();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    toggleEditModal();
+  };
+
+  const createInterview = () => {
+    if (
+      interviewData.desc === initialInterviewDataState.desc ||
+      interviewData.title === initialInterviewDataState.title
+    )
+      return;
+    axios
+      .put(crudapi, {
+        id: `${v4()}-${new Date(Date.now()).toISOString()}`,
+        ...interviewData,
+      })
+      .then((response) => {
+        console.log(response);
+        getAllInterviews();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    toggleAddModal();
+  };
+
   useEffect(() => {
     let mounted = true;
-    const response = getInterviews();
     if (mounted) {
-      setInterviews(response);
+      getAllInterviews();
     }
     return () => {
       mounted = false;
@@ -101,15 +136,16 @@ const Interviews = (props) => {
     }));
   };
 
-  const interviwsData = interviews.map(({ id, title, description }, index) => (
+  const interviwsData = interviews.map(({ id, title, desc }, index) => (
     <Interview
       key={id}
       id={id}
       index={index}
       title={title}
-      description={description}
+      desc={desc}
       setData={setInterviewData}
       toggleEditModal={toggleEditModal}
+      refreshHandler={() => getAllInterviews()}
     />
   ));
 
@@ -126,19 +162,14 @@ const Interviews = (props) => {
         />
         <TextField
           className={classes.input}
-          id="description"
-          name="description"
-          label="Description"
+          id="desc"
+          name="desc"
+          label="Desc"
           onChange={handleChange}
         />
         <br />
         <div align="right">
-          <Button
-            color="primary"
-            onClick={() =>
-              console.log("Evento crear encuesta: ", interviewData)
-            }
-          >
+          <Button color="primary" onClick={() => createInterview()}>
             Agregar
           </Button>
           <Button onClick={() => toggleAddModal()}>Cancelar</Button>
@@ -161,20 +192,15 @@ const Interviews = (props) => {
         />
         <TextField
           className={classes.input}
-          id="description"
-          name="description"
-          label="Description"
+          id="desc"
+          name="desc"
+          label="Desc"
           onChange={handleChange}
-          value={interviewData && interviewData.description}
+          value={interviewData && interviewData.desc}
         />
         <br />
         <div align="right">
-          <Button
-            color="primary"
-            onClick={() =>
-              console.log("Evento editar encuesta: ", interviewData)
-            }
-          >
+          <Button color="primary" onClick={() => updateInterview()}>
             Editar
           </Button>
           <Button onClick={() => toggleEditModal()}>Cancelar</Button>
